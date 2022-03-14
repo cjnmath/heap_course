@@ -6,7 +6,7 @@
 
 #define NAME "house of force\n"
 #define LINE "-------------------------------\n"
-// gcc -no-pie -Wl,-rpath,../libc/glibc_2.28_no-tcache/,-dynamic-linker,../libc/glibc_2.28_no-tcache/ld.so.2 -g house_of_force.c -o house_of_force
+// gcc -no-pie -Wl,-rpath,./libc/glibc_2.28_no-tcache/,-dynamic-linker,./libc/glibc_2.28_no-tcache/ld.so.2 -g test.c
 
 void print_banner(void) {
     printf(NAME);
@@ -40,7 +40,7 @@ void do_malloc(int* malloc_count) {
         char* buf = malloc(read_num());
         if (buf != NULL){
             printf("malloc data: ");
-            read(0, buf, malloc_usable_size(buf)+8);
+            read(0, buf, malloc_usable_size(buf));
             *malloc_count+=1;
             printf(LINE);
         }
@@ -51,16 +51,12 @@ void do_malloc(int* malloc_count) {
     }
 }
 
-char target[] = "hello";
-// char* target = "hello";
 void do_target(char* target) {
-    printf("The target is: %s\n", target);
+    printf("The target is :\t%s\n", target);
     printf(LINE);
 }
 
 void do_exit(void) {
-    printf("exiting...\n");
-    printf(LINE);
     exit(0);
 }
 
@@ -75,7 +71,7 @@ int main(void) {
     int malloc_count = 0;
     print_option(malloc_count);
     unsigned long option_num;
-    // char* target = "Have a nice day!";
+    char* target = "Have a nice day!";
     option_num = read_num();
     while (true) {
         switch (option_num) {
