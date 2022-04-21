@@ -53,3 +53,4 @@ dkms.conf
 
 a.out
 .DS_Store
+.gdb_history
