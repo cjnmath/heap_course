@@ -1,0 +1,6 @@
+[book]
+authors = ["jc"]
+language = "en"
+multilingual = false
+src = "src"
+title = "glibc_heap_exploit_technique"

