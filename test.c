@@ -4,9 +4,9 @@
 #include<unistd.h>
 #include<malloc.h>
 
-#define NAME "house of force\n"
+#define NAME "unstorted bin demo\n"
 #define LINE "-------------------------------\n"
-// gcc -no-pie -Wl,-rpath,./libc/glibc_2.28_no-tcache/,-dynamic-linker,./libc/glibc_2.28_no-tcache/ld.so.2 -g test.c
+// gcc -no-pie -Wl,-rpath,./libc/glibc_2.23_unsafe-unlink/,-dynamic-linker,./libc/glibc_2.23_unsafe-unlink/ld.so.2 -g test.c
 
 void print_banner(void) {
     printf(NAME);
@@ -62,32 +62,24 @@ void do_exit(void) {
 
 int main(void) {
     setvbuf(stdout, NULL, _IONBF, 0);
-    printf(LINE);
-    print_banner();
-    printf(LINE);
-    print_leak();
-    printf(LINE);
 
-    int malloc_count = 0;
-    print_option(malloc_count);
-    unsigned long option_num;
-    char* target = "Have a nice day!";
-    option_num = read_num();
-    while (true) {
-        switch (option_num) {
-            case 1:
-                do_malloc(&malloc_count);
-                break;
-            case 2:
-                do_target(target);
-                break;
-            case 3:
-                do_exit();
-                break;
-        }   
-        print_option(malloc_count); 
-        option_num = read_num();
-        printf(LINE);
-    }
+    void* a = malloc(0x88);
+    malloc(0x18);
+
+    void* b = malloc(0x88);
+    malloc(0x18);
+    
+    free(a);
+    free(b);
+
+    void* c = malloc(0x88);    
+    void* d = malloc(0x88);
+
+    free(d);
+    
+    d = malloc(0x88);
+    free(c);
+    free(d);
+
     return 0;
 }
