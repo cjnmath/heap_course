@@ -11,7 +11,8 @@
 #define MIN_SIZE 120
 #define MAX_SIZE 1000
 
-// gcc --std=gnu89 -no-pie -Wl,-rpath,../libc/glibc_2.23_unsafe-unlink/,-dynamic-linker,../libc/glibc_2.23_unsafe-unlink/ld.so.2 -g unsafe_unlinking.c -o unsafe_unlinking
+// gcc --std=gnu89 -z execstack-no-pie -Wl,-rpath,../libc/glibc_2.23_unsafe-unlink/,-dynamic-linker,../libc/glibc_2.23_unsafe-unlink/ld.so.2 -g unsafe_unlinking.c -o un\
+safe_unlinking
 
 void* pointers[MAX_MALLOC];
 
