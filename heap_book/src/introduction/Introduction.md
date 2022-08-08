@@ -50,17 +50,15 @@
 
 ### GUN libc演变和利用技巧
 
-#### [House of force](house_of_force/house_of_force.md) 
+#### [House of force](../house_of_force/house_of_force.md) 
 
 通过溢出改写top chunk 头信息，利用整数溢出达到任意写
 
-#### [Fastbins dup](fastbin_dup/fastbin_dup.md)
+#### [Fastbins dup](../fastbin_dup/fastbin_dup.md)
 
 利用double free漏洞，改写fastbin单向链表，实现任意写
 
-#### Unsafe-unlink
-
-[todo]
+#### [Unsafe-unlink](../unsafe_unlinking/unsafe_unlinking.md)
 
 最初版的DL malloc，改写unsortedbin 的fd 和bk，达到一个双向的写。
 

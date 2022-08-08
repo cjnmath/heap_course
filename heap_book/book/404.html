@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction/Introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="house_of_force/house_of_force.html"><strong aria-hidden="true">2.</strong> House of force</a></li><li class="chapter-item expanded "><a href="fastbin_dup/fastbin_dup.html"><strong aria-hidden="true">3.</strong> fastbin_dup</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction/Introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="house_of_force/house_of_force.html"><strong aria-hidden="true">2.</strong> House of force</a></li><li class="chapter-item expanded "><a href="fastbin_dup/fastbin_dup.html"><strong aria-hidden="true">3.</strong> fastbin dup</a></li><li class="chapter-item expanded "><a href="unsafe_unlinking/unsafe_unlinking.html"><strong aria-hidden="true">4.</strong> unsafe unlinking</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -152,22 +152,6 @@
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         <script type="text/javascript">
             window.playground_copyable = true;
         </script>
